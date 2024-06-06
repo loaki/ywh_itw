@@ -1,0 +1,19 @@
+FROM python:3.11-slim-bookworm
+
+WORKDIR /app
+
+COPY inject_programs/. /app
+COPY tools/. /app
+COPY .env /app
+COPY pyproject.toml /app
+
+RUN pip3 install --upgrade pip && \
+  pip3 install poetry
+
+ENV PYTHONPATH /python
+
+RUN python3 -m poetry install
+
+EXPOSE 6379
+
+CMD ["poetry", "run", "python", "-m", "ywh_programs"]
