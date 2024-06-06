@@ -12,5 +12,5 @@
 > Fetch all the public programs on YesWeHack API every 10 min  
 > Push program's title and reports_count to a redis queue  
 > Publish a message to a redis channel  
-> A thread listen redis channel and pop the program  
+> A thread listen to redis channel and pop the program  
 > The program is saved to mongodb  
