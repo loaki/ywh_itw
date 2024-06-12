@@ -12,10 +12,12 @@ class RedisQueue:
         self.client = redis.StrictRedis(
             host=os.getenv("REDIS_HOST"), port=os.getenv("REDIS_PORT"), db=0
         )
-        self.running = True
+        self.running = threading.Event()
+        self.running.set()
         self.queue_key = queue_key
         self.channel = channel
         self.process_func = process_func
+        self.pubsub = None
 
     def queue_push(self, item: dict) -> None:
         """
@@ -39,10 +41,10 @@ class RedisQueue:
         """
         Listen to the Redis channel and process the queue when a message is received
         """
-        pubsub = self.client.pubsub()
-        pubsub.subscribe(self.channel)
+        self.pubsub = self.client.pubsub()
+        self.pubsub.subscribe(self.channel)
 
-        for message in pubsub.listen():
+        for message in self.pubsub.listen():
             if message["type"] == "message":
                 self.process_queue()
 
@@ -54,11 +56,11 @@ class RedisQueue:
         thread.daemon = True
         thread.start()
 
-        while self.running:
-            pass
+        self.running.wait()
 
     def stop_threads(self) -> None:
         """
         Stop the listening thread
         """
-        self.running = False
+        self.running.clear()
+        self.pubsub.unsubscribe()
